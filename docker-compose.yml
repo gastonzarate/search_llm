@@ -1,0 +1,38 @@
+services:
+
+  langfuse:
+    image: langfuse/langfuse:2
+    ports:
+      - 3000:3000
+    environment:
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: mysecret
+      SALT: mysalt
+      DATABASE_URL: postgres://postgres:postgres@db-langfuse:5432/postgres
+    env_file: .env
+    depends_on:
+      - db-langfuse
+
+  db-langfuse:
+    image: postgres:15.3-alpine3.18
+    environment: 
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_langfuse:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+  api:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: ${ENVIRONMENT}
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app
+volumes:
+  pgdata_langfuse: {}
